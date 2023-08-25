@@ -1,1 +1,1 @@
-import tictactoe.main
+from tictactoe.main import TicTacToe
