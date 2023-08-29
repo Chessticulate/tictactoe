@@ -16,8 +16,7 @@ Python Tic Tac Toe Module
     - `pytest`
 
 ## Usage
-To run the module as a simple commandline game, run:
-    - `python tictactoe`
+To run the module as a simple commandline game, run: `python tictactoe`
 
 To use this module in another project, run:
     - TBD
