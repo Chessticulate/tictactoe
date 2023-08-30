@@ -1,1 +1,2 @@
-from tictactoe.main import TicTacToe
+"""Tic Tac Toe Module"""
+from tictactoe.core import TicTacToe

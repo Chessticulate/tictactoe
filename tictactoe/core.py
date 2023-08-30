@@ -1,13 +1,17 @@
+"""Core Tic Tac Toe Game Logic Module"""
 from typing import Tuple
 from enum import Enum
 
 
 class PlayerEnum(str, Enum):
+    """Player Enum Type"""
     X: str = "X"
     O: str = "O"
 
 
 class TicTacToe:
+    """Tic Tac Toe Game Class"""
+
     def __init__(self):
         """
         This is a python constructor.
@@ -19,10 +23,12 @@ class TicTacToe:
         """
         self.letter = PlayerEnum.X
         self.board = [[" ", " ", " "], [" ", " ", " "], [" ", " ", " "]]
-        # TODO: define attributes that will contain the state of the board (hint: 2D array)
 
     def __str__(self):
-        "This is the 'toString()' equivalent in python. This should return a string representation of the current game."
+        """
+        This is the 'toString()' equivalent in python.
+        This returns a string representation of the current game.
+        """
         return (
             "-----\n".join(["|".join(row) + "\n" for row in self.board])
             + self.letter
@@ -30,11 +36,11 @@ class TicTacToe:
         )
 
     def to_json(self) -> str:
-        "Returns a JSON representation of the game."
+        """Returns a JSON representation of the game."""
         # TODO: can be done much later down the line
 
     def move(self, location: Tuple[int]) -> int:
-        "Executes a move given an x/y coordinate pair."
+        """Executes a move given an x/y coordinate pair."""
         if not isinstance(location, tuple):
             raise TypeError("location must be a tuple")
         if len(location) != 2:
@@ -43,7 +49,7 @@ class TicTacToe:
             raise TypeError("location must contain only integers")
         if location[0] < 0 or location[0] > 2 or location[1] < 0 or location[1] > 2:
             raise ValueError("location coordinates out of bounds")
-        x, y = location
+        x, y = location  # pylint: disable=invalid-name
         if self.board[y][x] != " ":
             raise ValueError("space is not free")
         self.board[y][x] = self.letter
