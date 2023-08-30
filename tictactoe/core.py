@@ -1,4 +1,5 @@
 """Core Tic Tac Toe Game Logic Module"""
+import json
 from typing import Tuple
 from enum import Enum
 
@@ -14,14 +15,10 @@ class TicTacToe:
 
     def __init__(self):
         """
-        This is a python constructor.
-        Use this method to setup the initial state of the object.
-
-        e.g.
-        self.x = 1
-        self.name = 'Stu'
+        This is the TicTacToe class constructor.
+        It is used to setup the initial state of the object.
         """
-        self.letter = PlayerEnum.X
+        self.whomst = PlayerEnum.X
         self.board = [[" ", " ", " "], [" ", " ", " "], [" ", " ", " "]]
 
     def __str__(self):
@@ -31,13 +28,18 @@ class TicTacToe:
         """
         return (
             "-----\n".join(["|".join(row) + "\n" for row in self.board])
-            + self.letter
+            + self.whomst
             + "'s turn"
         )
 
     def to_json(self) -> str:
         """Returns a JSON representation of the game."""
-        # TODO: can be done much later down the line
+        return json.dumps(
+            {
+                "board": self.board,
+                "whomst": self.whomst,
+            }
+        )
 
     def move(self, location: Tuple[int]) -> int:
         """Executes a move given an x/y coordinate pair."""
@@ -52,8 +54,8 @@ class TicTacToe:
         x, y = location  # pylint: disable=invalid-name
         if self.board[y][x] != " ":
             raise ValueError("space is not free")
-        self.board[y][x] = self.letter
-        if self.letter == PlayerEnum.X:
-            self.letter = PlayerEnum.O
+        self.board[y][x] = self.whomst
+        if self.whomst == PlayerEnum.X:
+            self.whomst = PlayerEnum.O
         else:
-            self.letter = PlayerEnum.X
+            self.whomst = PlayerEnum.X
