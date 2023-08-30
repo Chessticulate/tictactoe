@@ -6,6 +6,7 @@ from enum import Enum
 
 class PlayerEnum(str, Enum):
     """Player Enum Type"""
+
     X: str = "X"
     O: str = "O"
 
