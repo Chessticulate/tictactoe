@@ -1,4 +1,11 @@
 #!/usr/bin/bash
+# This script is meant to be used exclusively by the
+# CI workflow located in `.github/workflows/ci.yml`.
+# It is responsible for comparing the versions of feature
+# branches with the version of the main branch. It will
+# close with a non-zero exit code if the current
+# feature branch's pyproject.toml version string is not
+# greater than that of the main branch.
 
 if [ -n "$(git branch | grep '* main')" ]
 then
@@ -21,8 +28,11 @@ cd tictactoe_main
 MAIN_BRANCH_VERSION=$(get_version)
 
 # mini python script to compare versions
-python -c "from sys import argv, exit;from pkg_resources import parse_version;exit(0) if parse_version(argv[1]) < parse_version(argv[2]) else exit(1)" \
-$MAIN_BRANCH_VERSION $THIS_BRANCH_VERSION
+PY_COMPARE_VERS="\
+from sys import argv, exit;\
+from pkg_resources import parse_version;
+exit(0) if parse_version(argv[1]) < parse_version(argv[2]) else exit(1)"
+python -c "$PY_COMPARE_VERS" $MAIN_BRANCH_VERSION $THIS_BRANCH_VERSION
 
 EXIT_CODE=$?
 
