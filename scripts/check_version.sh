@@ -1,5 +1,4 @@
 #!/usr/bin/bash
-set -ex
 
 if [ -n "$(git branch | grep '* main')" ]
 then
