@@ -1,7 +1,7 @@
 """Core Tic Tac Toe Game Logic Module"""
 import json
-from typing import Tuple
 from enum import Enum
+from pydantic import validate_call
 
 
 class PlayerEnum(str, Enum):
@@ -14,13 +14,14 @@ class PlayerEnum(str, Enum):
 class TicTacToe:
     """Tic Tac Toe Game Class"""
 
-    def __init__(self):
+    @validate_call
+    def __init__(self, whomst: Optional[PlayerEnum] = None, board: Optional[list[list[str]]] = None):
         """
         This is the TicTacToe class constructor.
         It is used to setup the initial state of the object.
         """
-        self.whomst = PlayerEnum.X
-        self.board = [[" ", " ", " "], [" ", " ", " "], [" ", " ", " "]]
+        self.whomst = next_turn if next_turn else PlayerEnum.X
+        self.board = board if board else [[" ", " ", " "], [" ", " ", " "], [" ", " ", " "]]
 
     def __str__(self):
         """
@@ -42,7 +43,13 @@ class TicTacToe:
             }
         )
 
-    def move(self, location: Tuple[int]) -> int:
+    @classmethod
+    def from_json(cls, json_str: str) -> TicTacToe:
+        """Creates a TicTacToe instance from a given JSON string."""
+        kwargs = json.loads(json_str)
+        return cls(**kwargs)
+
+    def move(self, location: tuple[int]) -> int:
         """Executes a move given an x/y coordinate pair."""
         if not isinstance(location, tuple):
             raise TypeError("location must be a tuple")
