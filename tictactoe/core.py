@@ -1,7 +1,7 @@
 """Core Tic Tac Toe Game Logic Module"""
 import json
 from enum import Enum
-from typing import Iterator, Optional
+from typing import Iterator, Optional, ForwardRef
 from pydantic import validate_call, conlist
 
 
@@ -10,6 +10,11 @@ class PlayerEnum(str, Enum):
 
     X: str = "X"
     O: str = "O"
+    NONE: str = " "
+
+
+# TicTacToe.from_json() returns TicTacToe
+TicTacToe = ForwardRef("TicTacToe")
 
 
 class TicTacToe:
@@ -19,15 +24,19 @@ class TicTacToe:
     def __init__(
         self,
         whomst: PlayerEnum = PlayerEnum.X,
-        board: Optional[list[list[str]]] = None,
+        board: Optional[
+            conlist(
+                conlist(str, min_length=3, max_length=3), min_length=3, max_length=3
+            )
+        ] = None,
     ):
         self._whomst = whomst
         self._board = (
-            board if board else [[" ", " ", " "], [" ", " ", " "], [" ", " ", " "]]
+            board if board else [[PlayerEnum.NONE for j in range(3)] for i in range(3)]
         )
         self._over = False
         self._tie = False
-        self._winner = False
+        self._winner = None
 
         self.evaluate()
 
@@ -39,11 +48,12 @@ class TicTacToe:
         return iter(self._board)
 
     def __str__(self) -> str:
-        return (
-            "-----\n".join(["|".join(row) + "\n" for row in self])
-            + self.whomst
-            + "'s turn"
-        )
+        summary = f"{self._whomst}'s turn"
+        if self._tie:
+            summary = "tie game!"
+        elif self._over:
+            summary = f"{self._winner} won!"
+        return "-----\n".join(["|".join(row) + "\n" for row in self]) + summary
 
     @property
     def whomst(self) -> str:
@@ -51,7 +61,7 @@ class TicTacToe:
         return self._whomst
 
     @property
-    def winner(self) -> str:
+    def winner(self) -> Optional[str]:
         """String representing the winner (if the game has ended)."""
         return self._winner
 
@@ -71,21 +81,24 @@ class TicTacToe:
             {
                 "board": self._board,
                 "whomst": self._whomst,
+                "game_over": self._over,
+                "tie_game": self._tie,
+                "winner": self._winner,
             }
         )
 
-    @validate_call
     @classmethod
-    def from_json(cls, json_str: str) -> "TicTacToe":
+    @validate_call
+    def from_json(cls, json_str: str) -> TicTacToe:
         """Creates a TicTacToe instance from a given JSON string."""
         kwargs = json.loads(json_str)
-        return cls(**kwargs)
+        return cls(whomst=kwargs["whomst"], board=kwargs["board"])
 
     @validate_call
     def _check_path(self, path: conlist(str, min_length=3, max_length=3)) -> bool:
         """Checks if a given path contains a win."""
         other = PlayerEnum.O if self._whomst == PlayerEnum.X else PlayerEnum.X
-        return " " not in path and other not in path
+        return PlayerEnum.NONE not in path and other not in path
 
     def evaluate(self) -> bool:
         """Check for win or tie game."""
@@ -110,7 +123,7 @@ class TicTacToe:
             return True
 
         # check if there are any spaces left
-        if " " not in [col for col in row for row in self]:
+        if PlayerEnum.NONE not in [col for col in row for row in self]:
             self._over = True
             self._tie = True
             return True
@@ -124,7 +137,7 @@ class TicTacToe:
             raise ValueError("The game is over")
 
         col, row = location
-        if self[row][col] != " ":
+        if self[row][col] != PlayerEnum.NONE:
             raise ValueError("Space is not free")
 
         # do the move
