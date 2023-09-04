@@ -67,6 +67,7 @@ def test_tictactoe_evaluate():
     assert game.tie == False
     assert game.winner == PlayerEnum.O
 
+
 def test_tictactoe_from_json():
     game = TicTacToe.from_json(JSON_STR_INIT)
     assert game.whomst == PlayerEnum.X
@@ -82,6 +83,7 @@ def test_tictactoe_from_json():
     assert game.over == True
     assert game.tie == False
     assert game.winner == PlayerEnum.O
+
 
 def test_tictactoe_move():
     game = TicTacToe()
