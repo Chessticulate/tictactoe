@@ -29,11 +29,15 @@ class TicTacToe:
                 conlist(str, min_length=3, max_length=3), min_length=3, max_length=3
             )
         ] = None,
+        history: Optional[
+            conlist(conlist(int, min_length=2, max_length=2), max_length=9)
+        ] = None,
     ):
         self._whomst = whomst
         self._board = (
             board if board else [[PlayerEnum.NONE for j in range(3)] for i in range(3)]
         )
+        self._history = history if history else []
         self._over = False
         self._tie = False
         self._winner = None
@@ -75,11 +79,17 @@ class TicTacToe:
         """Indicate whether game ended in a tie."""
         return self._tie
 
+    @property
+    def history(self) -> conlist(conlist(int, min_length=2, max_length=2)):
+        """Move history"""
+        return self._history
+
     def to_json(self) -> str:
         """Returns a JSON representation of the game."""
         return json.dumps(
             {
                 "board": self._board,
+                "history": self._history,
                 "whomst": self._whomst,
                 "game_over": self._over,
                 "tie_game": self._tie,
@@ -92,13 +102,16 @@ class TicTacToe:
     def from_json(cls, json_str: str) -> TicTacToe:
         """Creates a TicTacToe instance from a given JSON string."""
         kwargs = json.loads(json_str)
-        return cls(whomst=kwargs["whomst"], board=kwargs["board"])
+        return cls(
+            whomst=kwargs.get("whomst"),
+            board=kwargs.get("board"),
+            history=kwargs.get("history"),
+        )
 
     @validate_call
     def _check_path(self, path: conlist(str, min_length=3, max_length=3)) -> bool:
         """Checks if a given path contains a win."""
-        other = PlayerEnum.O if self._whomst == PlayerEnum.X else PlayerEnum.X
-        return PlayerEnum.NONE not in path and other not in path
+        return PlayerEnum.NONE not in path and len(set(path)) == 1
 
     def evaluate(self) -> bool:
         """Check for win or tie game."""
@@ -111,7 +124,9 @@ class TicTacToe:
             col = [_row[i] for _row in self]
             if self._check_path(row) or self._check_path(col):
                 self._over = True
-                self._winner = self._whomst
+                self._winner = (
+                    PlayerEnum.X if self._whomst == PlayerEnum.O else PlayerEnum.O
+                )
                 return True
 
         # check diagonals
@@ -119,7 +134,9 @@ class TicTacToe:
         from_top_right = [self[i][2 - i] for i in range(3)]
         if self._check_path(from_top_left) or self._check_path(from_top_right):
             self._over = True
-            self._winner = self._whomst
+            self._winner = (
+                PlayerEnum.X if self._whomst == PlayerEnum.O else PlayerEnum.O
+            )
             return True
 
         # check if there are any spaces left
@@ -142,10 +159,7 @@ class TicTacToe:
 
         # do the move
         self[row][col] = self._whomst
-
-        # check for end game
-        if self.evaluate():
-            return True
+        self._history.append(location)
 
         # flip player turn
         if self._whomst == PlayerEnum.X:
@@ -153,4 +167,27 @@ class TicTacToe:
         else:
             self._whomst = PlayerEnum.X
 
+        # check for end game
+        if self.evaluate():
+            return True
+
         return False
+
+    def undo(self) -> bool:
+        """Undo the previous move."""
+        if len(self._history) == 0:
+            return False
+        move = self._history.pop()
+        self[move[1]][move[0]] = PlayerEnum.NONE
+
+        # flip player turn
+        if self._whomst == PlayerEnum.X:
+            self._whomst = PlayerEnum.O
+        else:
+            self._whomst = PlayerEnum.X
+
+        self._tie = False
+        self._over = False
+        self._winner = None
+
+        return True
